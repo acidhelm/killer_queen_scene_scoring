@@ -21,7 +21,7 @@ class Tournament
         all_brackets_loaded = true
 
         while tournament_id
-            Rails.logger.debug "Reading the bracket \"#{tournament_id}\""
+            # TODO: Rails.logger.debug "Reading the bracket \"#{tournament_id}\""
 
             bracket = Bracket.new(id: tournament_id, api_key: @api_key)
 
@@ -46,7 +46,7 @@ class Tournament
                   players.map(&:name).join(", ")
             end
 
-            Rails.logger.info scene_list.join("\n")
+            # TODO: Rails.logger.info scene_list.join("\n")
 
             tournament_id = bracket.config.next_bracket
         end
@@ -58,7 +58,7 @@ class Tournament
 
         if values.count(values[0]) != values.size
             msg = "ERROR: All brackets must have the same \"max_players_to_count\"."
-            Rails.logger.error msg
+            # TODO: Rails.logger.error msg
             raise msg
         end
 
@@ -120,8 +120,8 @@ class Tournament
             if scores.size > max_players_to_count
                 dropped = scores.slice!(max_players_to_count..-1)
 
-                Rails.logger.info "Dropping the #{dropped.size} lowest scores from #{scene}:" +
-                                  dropped.join(", ")
+                # TODO: Rails.logger.info "Dropping the #{dropped.size} lowest scores from #{scene}:" +
+                #                  dropped.join(", ")
             end
 
             # Add up the scores for this scene.
