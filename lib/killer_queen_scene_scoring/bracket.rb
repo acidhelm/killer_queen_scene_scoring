@@ -16,7 +16,7 @@ class Bracket
     end
 
     def finalizable?
-        return state == "awaiting_review"
+        @state == "awaiting_review"
     end
 
     # Returns a boolean indicating whether the bracket was loaded.
