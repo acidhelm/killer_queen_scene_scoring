@@ -161,7 +161,7 @@ class Bracket
         array_size = @config.match_values.size
 
         if num_matches != array_size
-            if !(complete? || !finalizable?) ||
+            if !(complete? || finalizable?) ||
                @challonge_bracket.tournament_type != "double elimination" ||
                array_size != num_matches + 1
                 raise_error "match_values in the config file is the wrong size." \
