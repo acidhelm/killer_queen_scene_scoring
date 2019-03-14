@@ -5,6 +5,8 @@ module KillerQueenSceneScoring
 class Scene
     attr_accessor :name, :score, :num_players
 
+    # `name` is the name of the scene.  `player_scores` is an array that holds
+    # the points that were awarded to each player in the scene.
     def initialize(name, player_scores)
         @name = name
         @score = player_scores.sum
