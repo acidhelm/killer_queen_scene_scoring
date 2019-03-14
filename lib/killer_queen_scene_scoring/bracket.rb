@@ -5,20 +5,22 @@ module KillerQueenSceneScoring
 class Bracket
     attr_reader :players, :config
 
+    # `id` can be the slug or the challonge ID of the bracket.  If you pass a
+    #  and the bracket is owned by an organization, it must be of the form
+    # "<org name>-<slug>".  `api_key` is your Challonge API key.
     def initialize(id:, api_key:)
         @id = id
         @api_key = api_key
         @loaded = false
+        @state == ""
     end
 
     def complete?
         @state == "complete"
     end
 
-    def finalizable?
-        @state == "awaiting_review"
-    end
-
+    # Reads the Challonge bracket with the ID that was passed to the constructor,
+    # and fills in all the data structures that represent that bracket.
     # Returns a boolean indicating whether the bracket was loaded.
     def load
         url = "https://api.challonge.com/v1/tournaments/#{@id}.json"
@@ -33,8 +35,10 @@ class Bracket
             return false
         end
 
+        # Set `@challonge_bracket` to the data structure that represents the
+        # bracket, its teams, and its matches.  We also keep the bracket's
+        # state separately, for convenience.
         @challonge_bracket = OpenStruct.new(response[:tournament])
-
         @state = @challonge_bracket.state
 
         # Bail out if the bracket hasn't started yet.  This lets the tournament
@@ -48,6 +52,7 @@ class Bracket
             return false
         end
 
+        # Read all the things.
         read_config
         read_teams
         read_matches
@@ -57,13 +62,15 @@ class Bracket
         true
     end
 
-    # Calculates how many points each player has earned in a bracket.  If the
+    # Calculates how many points each player has earned in this bracket.  If the
     # bracket is not yet complete, the point values are the mininum number of
-    # points that the player can receive based on their current position in
+    # points that the player can earn based on their current position in
     # the bracket.
     # On exit, `@players` contains a hash.  The keys are the Challonge IDs of
     # the teams in the bracket.  The values are arrays of `Player` objects
     # representing the players on the team.
+    # The caller must call `load`, and `load` must succeed, before calling this
+    # function.
     def calculate_points
         raise_error "The bracket was not loaded" if !@loaded
 
@@ -73,15 +80,21 @@ class Bracket
 
     protected
 
+    def finalizable?
+        @state == "awaiting_review"
+    end
+
     def raise_error(msg)
         # TODO: Rails.logger.error "ERROR: #{msg}"
         raise msg
     end
 
+    # Reads the config file from the bracket.
     def read_config
         # Find the match that has the config file attached to it.  By convention,
         # the file is attached to the first match, although we don't enforce that.
-        # We just look for a match with exactly 1 attachment.
+        # We just look for a match with exactly one attachment.  We do require
+        # that exactly one match have exactly one attachment.
         first_match = @challonge_bracket.matches.select do |match|
             match[:match][:attachment_count] == 1
         end
@@ -106,8 +119,10 @@ class Bracket
 
         # TODO: Rails.logger.debug "Reading the config file from #{uri}"
 
+        # Read the config file from the attchment.
         config = send_get_request(uri.to_s)
 
+        # Ensure that the required values are in the config file.
         %i(base_point_value max_players_to_count match_values).each do |key|
             raise_error "The config file is missing \"#{key}\"" unless config.key?(key)
         end
@@ -115,17 +130,23 @@ class Bracket
         @config = Config.new(config)
     end
 
+    # Reads the teams that are in this bracket, and sets `@teams` to an array
+    # of `Team` objects.
     def read_teams
         @teams = []
 
+        # Make a `Team` for each participant in the bracket.
         @challonge_bracket.participants.each do |team|
             @teams << Team.new(team[:participant])
         end
 
         # TODO: Rails.logger.info "#{@teams.size} teams are in the bracket: " +
-                          @teams.sort_by(&:name).map { |t| %("#{t.name}") }.join(", ")
+        #                  @teams.sort_by(&:name).map { |t| %("#{t.name}") }.join(", ")
 
         # Check that all of the teams in the bracket are also in the config file.
+        # We do case-insensitive name comparisons to allow for different
+        # capitalizations of prepositions and articles.  This is fine, because
+        # two teams' names will never be the same except for case.
         missing_teams = []
         config_team_names = @config.teams.map { |t| t[:name] }
 
@@ -141,6 +162,8 @@ class Bracket
         end
     end
 
+    # Reads the matches that are in this bracket, and sets `@matches` to an array
+    # of `Match` objects.
     def read_matches
         # Check that `match_values` in the config file is the right size.
         # The size must normally equal the number of matches.  However, if the
@@ -149,38 +172,45 @@ class Bracket
         # allowed to be one more than the number of matches, to account for a grand
         # final that was only one match long.
         #
+        # TODO: Also check that grand_finals_modifier is not set.
+        #
         # If this is a two-stage bracket, the matches in the first stage have
         # `suggested_play_order` set to nil, so don't consider those matches.
         # If there is a match for 3rd place, its `suggested_play_order` is nil.
-        # We also ignore that match, and instead, assign points to the 3rd-place
+        # We also ignore that match, and instead, we award points to the 3rd-place
         # and 4th-place teams after the bracket has finished.
         @matches = []
         elim_stage_matches =
             @challonge_bracket.matches.select { |m| m[:match][:suggested_play_order] }
         num_matches = elim_stage_matches.size
-        array_size = @config.match_values.size
+        config_array_size = @config.match_values.size
 
-        if num_matches != array_size
+        if num_matches != config_array_size
             if !(complete? || finalizable?) ||
                @challonge_bracket.tournament_type != "double elimination" ||
-               array_size != num_matches + 1
+               config_array_size != num_matches + 1
                 raise_error "match_values in the config file is the wrong size." \
-                              " The size is #{array_size}, expected #{num_matches}."
+                              " The size is #{config_array_size}, expected #{num_matches}."
             end
         end
 
+        # Make a `Match` for each match in the bracket.
         elim_stage_matches.each do |match|
             @matches << Match.new(match[:match], @config.match_values)
         end
     end
 
+    # Reads the players that are in this bracket, and sets `@players` to a hash.
+    # Each key is a Challonge ID of a team, and each value is an array of
+    # `Player` objects for the players on that team.
     def read_players
-        @players = {}
+        @players = Hash.new { |h, k| h[k] = [] }
 
-        # Parse the team list and create structs for each player on the teams.
+        # Read the team list from the config file and create structs for each
+        # player on each team.
         @config.teams.each do |team|
-            # Look up the team in the `@teams` hash.  This is how we associate a
-            # team in the config file with its ID on Challonge.
+            # Look up the team in the `@teams` array.  This is how we associate a
+            # team in the config file with its Challonge ID.
             team_obj = @teams.find { |t| t.name.casecmp?(team[:name]) }
 
             # If the `find` call failed, then there is a team in the team list that
@@ -191,8 +221,6 @@ class Bracket
                 next
             end
 
-            @players[team_obj.id] = []
-
             team[:players].each do |player|
                 @players[team_obj.id] << Player.new(player)
             end
@@ -202,6 +230,7 @@ class Bracket
         end
 
         # Bail out if any team doesn't have exactly 5 players.
+        # TODO: Do this in `read_config` instead.
         invalid_teams = @players.select do |_, team|
             team.size != 5
         end.each_key.map do |team_id|
@@ -213,9 +242,11 @@ class Bracket
         end
     end
 
-    # Calculates how many points each team has earned in a bracket.  If the
+    # Calculates how many points each team has earned in this bracket.  If the
     # bracket is not yet complete, the values are the mininum number of points
     # that the team can receive based on their current position in the bracket.
+    # Sets the `points` member of each object in `@teams` to the number of
+    # points that each team member has earned.
     def calculate_team_points
         # If the bracket is complete, we can calculate points based on the
         # teams' `final_rank`s.
@@ -243,7 +274,8 @@ class Bracket
         end
     end
 
-    # Calculates how many points each player has earned in the tournament.
+    # Calculates how many points each player has earned in the tournament, and
+    # sets the `points` member of each object in `@players` to that value.
     def calculate_player_points
         # Iterate over the teams in descending order of their scores.  This way,
         # the debug output will follow the teams' finishing order, which will be
@@ -258,7 +290,9 @@ class Bracket
         end
     end
 
-    # Calculates how many points each team earned in the bracket.
+    # Calculates how many points each team earned in this bracket.
+    # Sets the `points` member of each object in `@teams` to the number of
+    # points that each team member has earned.
     def calculate_team_points_by_final_rank
         # Calculate how many points to award to each rank.  When multiple teams
         # have the same rank (e.g., two teams tie for 5th place), those teams
@@ -267,11 +301,10 @@ class Bracket
         # points respectively.  The two teams in 5th get 1.5, the average of 2 and 1.
         sorted_teams = @teams.sort_by(&:final_rank)
         num_teams = sorted_teams.size.to_f
+        final_rank_points = Hash.new { |h, k| h[k] = [] }
 
-        final_rank_points = sorted_teams.each_with_index.
-                              each_with_object({}) do |(team, idx), rank_points|
-            rank_points[team.final_rank] ||= []
-            rank_points[team.final_rank] << num_teams - idx
+        sorted_teams.each_with_index do |team, idx|
+            final_rank_points[team.final_rank] << num_teams - idx
         end
 
         base_point_value = @config.base_point_value
