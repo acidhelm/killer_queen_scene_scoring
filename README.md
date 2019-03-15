@@ -1,41 +1,110 @@
-# KillerQueenSceneScoring
+# Killer Queen Scene Scoring
 
 [![Gem Version](https://badge.fury.io/rb/killer_queen_scene_scoring.svg)](https://badge.fury.io/rb/killer_queen_scene_scoring)
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/killer_queen_scene_scoring`. To experiment with that code, run `bin/console` for an interactive prompt.
+This is an implementation of the scene-wide scoring system that was introduced
+in Bumble Bash 3. The idea is outlined in
+[this Facebook post](https://www.facebook.com/events/1788575457853671/permalink/1949400981771117)
+in the BB3 group.
 
-TODO: Delete this and the text above, and describe your gem
+# The config file
 
-## Installation
+The config file is a JSON file that contains information about the bracket.
+The file is attached to the first match in the bracket.  Challonge apparently
+doesn't allow attachments with the `.json` extension, so you must use some
+other extension like `.txt` for it to be accepted.
 
-Add this line to your application's Gemfile:
+The config file has some parameters, a list of teams, and the players on those
+teams.  The parameters are:
 
-```ruby
-gem 'killer_queen_scene_scoring'
+```json
+{
+  "base_point_value": 0,
+  "next_bracket": null,
+  "max_players_to_count": 3,
+  "match_values": [ 1, 1, 1, 2, 2, 3, 3 ],
+}
 ```
 
-And then execute:
+`base_point_value`: This is a number that is added to the point values in the
+`match_values` array.  It is used in tournaments where some teams do not advance
+to the final bracket.  Set this to the number of teams that did not advance.
+For example, if your tournament has 20 teams, and 12 play in the final bracket,
+set `base_point_value` to 8 (20-12).  
+`next_bracket`: Set this to the slug or the Challonge ID of a bracket that
+should be processed after the current bracket.  Set it to `null` or omit it in
+the config file of the last bracket in the tournament.  If you set this to the
+slug of a tournament that is owned by an organization, the string must be of the form
+"org_name-bracket_name", for example, "kq-sf-GDC3" (which is owned by the "kq-sf"
+organization).  
+`max_players_to_count`: The maximum number of players from a scene that can
+contribute to that scene's score.  All config files in a tournament must have
+the same value for this field.  
+`match_values`: An array of integers.  These are the points that are awarded
+to the players on a team for reaching each match of the bracket.  For example,
+a team that reaches match 4 gets 2 points, since the 4th element in the array
+is 2.  The example above is for a
+[four-team double-elimination bracket](https://challonge.com/tvtpeasf).
+These numbers must currently be calculated by hand.  However, once you calculate
+them for a particular type of bracket (e.g., double-elimination with 12 teams),
+you can reuse them for all future brackets of that same type.
 
-    $ bundle
+Note that the last two values in the sample `match_values` are the same.
+Those represent the two matches in the grand final.  Those numbers are the
+points awarded for _reaching_ a match, not _winning_ a match.  Once a bracket is
+complete, the team that won the grand final is awarded one additional point.
 
-Or install it yourself as:
+The config file also holds a list of teams and their players.  After the
+parameters, write a `teams` array that lists the teams, the names of their
+players, and the scenes that the players represent.
 
-    $ gem install killer_queen_scene_scoring
+```json
+{
+  /* parameters here */
+  "teams": [
+    {
+      "name": "Midwest Madness (CHI/MPLS/KC)",
+      "players": [
+        {
+          "name": "Alice",
+          "scene": "Chicago"
+        },
+        {
+          "name": "Bob",
+          "scene": "Chicago"
+        },
+        {
+          "name": "Charlie",
+          "scene": "Minneapolis"
+        },
+        {
+          "name": "Dani",
+          "scene": "Minneapolis"
+        },
+        {
+          "name": "Eve",
+          "scene": "Kansas City"
+        }
+      ]
+    },
+    /* other teams... */
+  ]
+}
+```
 
-## Usage
+The team name in the config file must match the team's name in the
+Challonge bracket, although the case of letters may differ.  This means that
+a team must have the same name in all the brackets in a tournament.
 
-TODO: Write usage instructions here
+# Calculating scores
 
-## Development
+```ruby
+id = "tvtpeasf"  # Replace this with your tournament's slug or ID
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+t = KillerQueenSceneScoring::Tournament.new(id: id, api_key: your_api_key)
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/killer_queen_scene_scoring.
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+if t.load
+  t.calculate_points
+  puts t.scene_scores.sort
+end
+```
