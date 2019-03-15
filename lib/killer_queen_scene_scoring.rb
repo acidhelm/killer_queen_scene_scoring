@@ -1,3 +1,4 @@
+require "dotenv/load"
 require "json"
 require "rest-client"
 require "killer_queen_scene_scoring/bracket.rb"
