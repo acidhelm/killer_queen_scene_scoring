@@ -10,6 +10,8 @@ require "killer_queen_scene_scoring/tournament"
 require "killer_queen_scene_scoring/version"
 
 module KillerQueenSceneScoring
-    class Error < StandardError
+    # Creates a hash whose values are arrays.
+    def self.hash_of_arrays
+        Hash.new { |h, k| h[k] = [] }
     end
 end

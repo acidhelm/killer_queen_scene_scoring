@@ -43,7 +43,7 @@ class Tournament
             @brackets << bracket
 
             # For debugging purposes, log the players in each scene ->
-            scenes = Hash.new { |h, k| h[k] = [] }
+            scenes = KillerQueenSceneScoring::hash_of_arrays
 
             bracket.players.each_value do |team|
                 team.each do |player|
@@ -123,7 +123,7 @@ class Tournament
         # Assemble the scores from the players in each scene.
         # `scene_players_scores` is a hash from a scene name to an array that
         # holds the scores of all the players in that scene.
-        scene_players_scores = Hash.new { |h, k| h[k] = [] }
+        scene_players_scores = KillerQueenSceneScoring::hash_of_arrays
 
         player_scores.each_value do |player|
             scene_players_scores[player.scene] << player.points

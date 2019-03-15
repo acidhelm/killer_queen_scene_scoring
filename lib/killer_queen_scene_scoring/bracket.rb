@@ -204,7 +204,7 @@ class Bracket
     # Each key is a Challonge ID of a team, and each value is an array of
     # `Player` objects for the players on that team.
     def read_players
-        @players = Hash.new { |h, k| h[k] = [] }
+        @players = KillerQueenSceneScoring::hash_of_arrays
 
         # Read the team list from the config file and create structs for each
         # player on each team.
@@ -301,7 +301,7 @@ class Bracket
         # points respectively.  The two teams in 5th get 1.5, the average of 2 and 1.
         sorted_teams = @teams.sort_by(&:final_rank)
         num_teams = sorted_teams.size.to_f
-        final_rank_points = Hash.new { |h, k| h[k] = [] }
+        final_rank_points = KillerQueenSceneScoring::hash_of_arrays
 
         sorted_teams.each_with_index do |team, idx|
             final_rank_points[team.final_rank] << num_teams - idx
