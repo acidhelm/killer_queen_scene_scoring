@@ -2,9 +2,9 @@ PATH
   remote: .
   specs:
     killer_queen_scene_scoring (0.1.0)
-      dotenv
-      json
-      rest-client
+      dotenv (~> 2.7)
+      json (~> 2.2)
+      rest-client (~> 2.0)
 
 GEM
   remote: https://rubygems.org/

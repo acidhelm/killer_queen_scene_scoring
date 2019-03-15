@@ -9,7 +9,6 @@ Gem::Specification.new do |spec|
     spec.version = KillerQueenSceneScoring::VERSION
     spec.authors = ["Michael Dunn"]
     spec.email = ["acidhelm@gmail.com"]
-    spec.date = Date.today.strftime("%F")
 
     spec.summary = "Scene-wide scoring for Killer Queen tournaments."
     spec.description = "Classes that implement scene-wide scoring for Killer Queen tournaments."
@@ -42,7 +41,7 @@ Gem::Specification.new do |spec|
     spec.add_development_dependency "minitest", "~> 5.0"
     spec.add_development_dependency "rake", "~> 10.0"
 
-    spec.add_runtime_dependency "dotenv"
-    spec.add_runtime_dependency "json"
-    spec.add_runtime_dependency "rest-client"
+    spec.add_runtime_dependency "dotenv", "~> 2.7"
+    spec.add_runtime_dependency "json", "~> 2.2"
+    spec.add_runtime_dependency "rest-client", "~> 2.0"
 end
