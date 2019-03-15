@@ -1,3 +1,29 @@
 #!/usr/bin/env ruby
 
 require "killer_queen_scene_scoring"
+
+id = ARGV[0]
+api_key = ENV["CHALLONGE_API_KEY"] || ARGV[1]
+
+unless id && api_key
+    puts <<~EOS
+        Usage: #{File.basename __FILE__} <bracket_id> <api_key>
+
+        bracket_id is the slug or numeric ID of the first bracket in the tournament.
+        api_key is your Challonge API key.
+
+        If you don't have a tournament ready, you can try one of these, which have
+        already been set up: tvtpeasf clonekqxxv bb3wc
+
+        For convenience, you can create a .env file in the current directory and
+        store your API key in that file.  The file should have this line:
+          CHALLONGE_API_KEY=Your_API_key_here
+    EOS
+
+    return
+end
+
+t = KillerQueenSceneScoring::Tournament.new(id: id, api_key: api_key)
+t.load
+t.calculate_points
+puts t.scene_scores.sort
