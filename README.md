@@ -1,6 +1,6 @@
 # Killer Queen Scene Scoring
-
-[![Gem Version](https://badge.fury.io/rb/killer_queen_scene_scoring.svg)](https://badge.fury.io/rb/killer_queen_scene_scoring)
+[![Build status](https://travis-ci.com/acidhelm/killer_queen_scene_scoring.svg?branch=master)](https://travis-ci.com/acidhelm/killer_queen_scene_scoring)
+[![Gem version](https://badge.fury.io/rb/killer_queen_scene_scoring.svg)](https://badge.fury.io/rb/killer_queen_scene_scoring)
 
 This is an implementation of the scene-wide scoring system that was introduced
 in Bumble Bash 3. The idea is outlined in
