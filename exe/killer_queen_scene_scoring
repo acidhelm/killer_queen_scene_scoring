@@ -23,7 +23,7 @@ unless id && api_key
     return
 end
 
-t = KillerQueenSceneScoring::Tournament.new(id: id, api_key: api_key)
+t = KillerQueenSceneScoring::Tournament.new(id: id, api_key: api_key, logger: true)
 t.load
 t.calculate_points
 puts t.scene_scores.sort

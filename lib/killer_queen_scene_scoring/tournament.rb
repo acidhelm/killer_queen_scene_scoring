@@ -9,13 +9,23 @@ class Tournament
     # tournament.  If you pass a slug, and the bracket is owned by an organization,
     # it must be of the form "<org name>-<slug>".
     # `api_key` is your Challonge API key.
-    def initialize(id:, api_key:)
+    # `logger` can be a `Logger` object, or `true` to log to standard output.
+    def initialize(id:, api_key:, logger: nil)
         @brackets = []
         @scene_scores = []
         @loaded = false
         @complete = false
         @id = id
         @api_key = api_key
+
+        @logger = case logger
+                      when true
+                          Logger.new(STDOUT, progname: "KillerQueenSceneScoring")
+                      when Logger
+                          logger
+                      else
+                          nil
+                  end
     end
 
     # Reads the Challonge bracket with the ID that was passed to the constructor,
@@ -29,10 +39,10 @@ class Tournament
         all_brackets_loaded = true
 
         while tournament_id
-            # TODO: Rails.logger.debug "Reading the bracket \"#{tournament_id}\""
+            @logger&.debug "Reading the bracket \"#{tournament_id}\""
 
             # Load the next bracket in the chain.  Bail out if we can't load it.
-            bracket = Bracket.new(id: tournament_id, api_key: @api_key)
+            bracket = Bracket.new(id: tournament_id, api_key: @api_key, logger: @logger)
 
             if !bracket.load
                 all_brackets_loaded = false
@@ -56,7 +66,7 @@ class Tournament
                   players.map(&:name).join(", ")
             end
 
-            # TODO: Rails.logger.info scene_list.join("\n")
+            @logger&.info scene_list.join("\n")
             # <- end debug logging
 
             # Go to the next bracket in the chain.
@@ -70,7 +80,7 @@ class Tournament
 
         if values.count(values[0]) != values.size
             msg = "ERROR: All brackets must have the same \"max_players_to_count\"."
-            # TODO: Rails.logger.error msg
+            @logger&.error msg
             raise msg
         end
 
@@ -140,8 +150,8 @@ class Tournament
             if scores.size > max_players_to_count
                 dropped = scores.slice!(max_players_to_count..-1)
 
-                # TODO: Rails.logger.info "Dropping the #{dropped.size} lowest scores from #{scene}:" +
-                #                  dropped.join(", ")
+                @logger&.info "Dropping the #{dropped.size} lowest scores from #{scene}:" +
+                              dropped.join(", ")
             end
 
             # Add up the scores for this scene.
