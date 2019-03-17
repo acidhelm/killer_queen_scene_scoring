@@ -9,6 +9,7 @@ Gem::Specification.new do |spec|
     spec.version = KillerQueenSceneScoring::VERSION
     spec.authors = ["Michael Dunn"]
     spec.email = ["acidhelm@gmail.com"]
+    spec.required_ruby_version = "~> 2.6.0"
 
     spec.summary = "Scene-wide scoring for Killer Queen tournaments."
     spec.description = "Classes that implement scene-wide scoring for Killer Queen tournaments."
