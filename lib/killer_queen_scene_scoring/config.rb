@@ -2,6 +2,8 @@
 
 module KillerQueenSceneScoring
 
+# `Config` holds the contents of the config file that is read from a
+# attachment in a bracket.
 class Config
     attr_reader :base_point_value, :next_bracket, :max_players_to_count,
                 :match_values, :teams

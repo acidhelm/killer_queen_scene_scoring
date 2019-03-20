@@ -2,7 +2,7 @@
 
 module KillerQueenSceneScoring
 
-class Tournament
+class Tournament < Base
     attr_reader :scene_scores, :complete
 
     # `id` can be the slug or the challonge ID of the first bracket in the
@@ -11,21 +11,13 @@ class Tournament
     # `api_key` is your Challonge API key.
     # `logger` can be a `Logger` object, or `true` to log to standard output.
     def initialize(id:, api_key:, logger: nil)
+        super(api_key, logger)
+
         @brackets = []
         @scene_scores = []
         @loaded = false
         @complete = false
         @id = id
-        @api_key = api_key
-
-        @logger = case logger
-                      when true
-                          Logger.new(STDOUT, progname: "KillerQueenSceneScoring")
-                      when Logger
-                          logger
-                      else
-                          nil
-                  end
     end
 
     # Reads the Challonge bracket with the ID that was passed to the constructor,
@@ -39,10 +31,10 @@ class Tournament
         all_brackets_loaded = true
 
         while tournament_id
-            @logger&.debug "Reading the bracket \"#{tournament_id}\""
+            log_debug "Reading the bracket \"#{tournament_id}\""
 
             # Load the next bracket in the chain.  Bail out if we can't load it.
-            bracket = Bracket.new(id: tournament_id, api_key: @api_key, logger: @logger)
+            bracket = Bracket.new(id: tournament_id, api_key: api_key, logger: logger)
 
             if !bracket.load
                 all_brackets_loaded = false
@@ -53,7 +45,7 @@ class Tournament
             @brackets << bracket
 
             # For debugging purposes, log the players in each scene ->
-            scenes = KillerQueenSceneScoring::hash_of_arrays
+            scenes = hash_of_arrays
 
             bracket.players.each_value do |team|
                 team.each do |player|
@@ -66,7 +58,7 @@ class Tournament
                   players.map(&:name).join(", ")
             end
 
-            @logger&.info scene_list.join("\n")
+            log_info scene_list.join("\n")
             # <- end debug logging
 
             # Go to the next bracket in the chain.
@@ -80,7 +72,7 @@ class Tournament
 
         if values.count(values[0]) != values.size
             msg = "ERROR: All brackets must have the same \"max_players_to_count\"."
-            @logger&.error msg
+            log_error msg
             raise msg
         end
 
@@ -133,7 +125,7 @@ class Tournament
         # Assemble the scores from the players in each scene.
         # `scene_players_scores` is a hash from a scene name to an array that
         # holds the scores of all the players in that scene.
-        scene_players_scores = KillerQueenSceneScoring::hash_of_arrays
+        scene_players_scores = hash_of_arrays
 
         player_scores.each_value do |player|
             scene_players_scores[player.scene] << player.points
@@ -150,8 +142,8 @@ class Tournament
             if scores.size > max_players_to_count
                 dropped = scores.slice!(max_players_to_count..-1)
 
-                @logger&.info "Dropping the #{dropped.size} lowest scores from #{scene}:" +
-                              dropped.join(", ")
+                log_info "Dropping the #{dropped.size} lowest scores from #{scene}:" +
+                         dropped.join(", ")
             end
 
             # Add up the scores for this scene.

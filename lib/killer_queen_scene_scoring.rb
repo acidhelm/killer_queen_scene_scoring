@@ -1,6 +1,7 @@
 require "dotenv/load"
 require "json"
 require "rest-client"
+require "killer_queen_scene_scoring/base.rb"
 require "killer_queen_scene_scoring/bracket.rb"
 require "killer_queen_scene_scoring/config"
 require "killer_queen_scene_scoring/match"
@@ -11,8 +12,4 @@ require "killer_queen_scene_scoring/tournament"
 require "killer_queen_scene_scoring/version"
 
 module KillerQueenSceneScoring
-    # Creates a hash whose values are arrays.
-    def self.hash_of_arrays
-        Hash.new { |h, k| h[k] = [] }
-    end
 end

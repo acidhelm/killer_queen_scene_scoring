@@ -2,16 +2,16 @@
 
 module KillerQueenSceneScoring
 
-class Bracket
+class Bracket < Base
     attr_reader :players, :config
 
     # `id` can be the slug or the challonge ID of the bracket.  If you pass a
     #  and the bracket is owned by an organization, it must be of the form
     # "<org name>-<slug>".  `api_key` is your Challonge API key.
     def initialize(id:, api_key:, logger:)
+        super(api_key, logger)
+
         @id = id
-        @api_key = api_key
-        @logger = logger
         @loaded = false
         @state == ""
     end
@@ -32,7 +32,7 @@ class Bracket
         rescue RestClient::NotFound
             # Bail out if we got a 404 error.  The bracket doesn't exist on
             # Challonge right now, but it might be created in the future.
-            @logger&.warn "The bracket does not exist."
+            log_warn "The bracket does not exist."
             return false
         end
 
@@ -49,7 +49,7 @@ class Bracket
         # bracket, and set `next_bracket` in the wild card bracket to the ID
         # of the finals bracket before the wild card bracket has finished.
         if @challonge_bracket.started_at.nil?
-            @logger&.warn "The bracket has not been started yet."
+            log_warn "The bracket has not been started yet."
             return false
         end
 
@@ -86,7 +86,7 @@ class Bracket
     end
 
     def raise_error(msg)
-        @logger&.error "ERROR: #{msg}"
+        log_error "ERROR: #{msg}"
         raise msg
     end
 
@@ -118,7 +118,7 @@ class Bracket
         # instead start with "//".  Default to HTTPS.
         uri.scheme ||= "https"
 
-        @logger&.debug "Reading the config file from #{uri}"
+        log_debug "Reading the config file from #{uri}"
 
         # Read the config file from the attchment.
         config = send_get_request(uri.to_s)
@@ -141,8 +141,8 @@ class Bracket
             @teams << Team.new(team[:participant])
         end
 
-        @logger&.info "#{@teams.size} teams are in the bracket: " +
-                      @teams.sort_by(&:name).map { |t| %("#{t.name}") }.join(", ")
+        log_info "#{@teams.size} teams are in the bracket: " +
+                 @teams.sort_by(&:name).map { |t| %("#{t.name}") }.join(", ")
 
         # Check that all of the teams in the bracket are also in the config file.
         # We do case-insensitive name comparisons to allow for different
@@ -205,7 +205,7 @@ class Bracket
     # Each key is a Challonge ID of a team, and each value is an array of
     # `Player` objects for the players on that team.
     def read_players
-        @players = KillerQueenSceneScoring::hash_of_arrays
+        @players = hash_of_arrays
 
         # Read the team list from the config file and create structs for each
         # player on each team.
@@ -218,7 +218,7 @@ class Bracket
             # isn't in the bracket.  We allow this so that multiple brackets can
             # use the same master team list during a tournament.
             if team_obj.nil?
-                @logger&.info "Skipping a team that isn't in the bracket: #{team[:name]}"
+                log_info "Skipping a team that isn't in the bracket: #{team[:name]}"
                 next
             end
 
@@ -226,8 +226,8 @@ class Bracket
                 @players[team_obj.id] << Player.new(player)
             end
 
-            @logger&.info "#{team[:name]} (ID #{team_obj.id}) has: " +
-                          @players[team_obj.id].map { |p| "#{p.name} (#{p.scene})" }.join(", ")
+            log_info "#{team[:name]} (ID #{team_obj.id}) has: " +
+                     @players[team_obj.id].map { |p| "#{p.name} (#{p.scene})" }.join(", ")
         end
 
         # Bail out if any team doesn't have exactly 5 players.
@@ -264,12 +264,12 @@ class Bracket
         @teams.each do |team|
             matches_with_team = @matches.select { |match| match.has_team?(team.id) }
 
-            @logger&.info "Team #{team.name} was in #{matches_with_team.size} matches"
+            log_info "Team #{team.name} was in #{matches_with_team.size} matches"
 
             points_earned = matches_with_team.max_by(&:points).points
 
-            @logger&.info "The largest point value of those matches is #{points_earned}" \
-                            "#{" + #{base_point_value} base" if base_point_value > 0}"
+            log_info "The largest point value of those matches is #{points_earned}" \
+                       "#{" + #{base_point_value} base" if base_point_value > 0}"
 
             team.points = points_earned + base_point_value
         end
@@ -282,8 +282,8 @@ class Bracket
         # the debug output will follow the teams' finishing order, which will be
         # easier to read.
         @teams.sort_by(&:points).reverse_each do |team|
-            @logger&.info "Awarding #{team.points} points to #{team.name}: " +
-                          @players[team.id].map(&:to_s).join(", ")
+            log_info "Awarding #{team.points} points to #{team.name}: " +
+                     @players[team.id].map(&:to_s).join(", ")
 
             @players[team.id].each do |player|
                 player.points = team.points
@@ -302,7 +302,7 @@ class Bracket
         # points respectively.  The two teams in 5th get 1.5, the average of 2 and 1.
         sorted_teams = @teams.sort_by(&:final_rank)
         num_teams = sorted_teams.size.to_f
-        final_rank_points = KillerQueenSceneScoring::hash_of_arrays
+        final_rank_points = hash_of_arrays
 
         sorted_teams.each_with_index do |team, idx|
             final_rank_points[team.final_rank] << num_teams - idx
@@ -314,9 +314,9 @@ class Bracket
             points_earned = final_rank_points[team.final_rank].sum /
                               final_rank_points[team.final_rank].size
 
-            @logger&.info "#{team.name} finished in position #{team.final_rank}" \
-                            " and gets #{points_earned} points" \
-                            "#{" + #{base_point_value} base" if base_point_value > 0}"
+            log_info "#{team.name} finished in position #{team.final_rank}" \
+                       " and gets #{points_earned} points" \
+                       "#{" + #{base_point_value} base" if base_point_value > 0}"
 
             team.points = points_earned + base_point_value
         end
@@ -325,7 +325,7 @@ class Bracket
     # Sends a GET request to `url`, treats the returned data as JSON, parses it
     # into an object, and returns that object.
     def send_get_request(url, params = {})
-        params[:api_key] = @api_key
+        params[:api_key] = api_key
         resp = RestClient.get(url, params: params)
 
         JSON.parse(resp, symbolize_names: true)

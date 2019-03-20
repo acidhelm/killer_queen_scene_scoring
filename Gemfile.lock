@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    killer_queen_scene_scoring (0.3.1)
+    killer_queen_scene_scoring (0.3.2)
       dotenv (~> 2.7)
       json (~> 2.2)
       rest-client (~> 2.0)
