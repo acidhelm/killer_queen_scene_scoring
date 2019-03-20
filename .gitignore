@@ -9,3 +9,6 @@
 /vendor/
 *.gem
 .env
+/log/*
+!/log/.keep
+/test/vcr_cassettes

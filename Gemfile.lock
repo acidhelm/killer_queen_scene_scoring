@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    killer_queen_scene_scoring (0.3.0)
+    killer_queen_scene_scoring (0.3.1)
       dotenv (~> 2.7)
       json (~> 2.2)
       rest-client (~> 2.0)
@@ -9,9 +9,14 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.6.0)
+      public_suffix (>= 2.0.2, < 4.0)
+    crack (0.4.3)
+      safe_yaml (~> 1.0.0)
     domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.7.1)
+    hashdiff (0.3.8)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
     json (2.2.0)
@@ -20,14 +25,21 @@ GEM
     mime-types-data (3.2018.0812)
     minitest (5.11.3)
     netrc (0.11.0)
+    public_suffix (3.0.3)
     rake (10.5.0)
     rest-client (2.0.2)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    safe_yaml (1.0.5)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.5)
+    vcr (4.0.0)
+    webmock (3.5.1)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+      hashdiff
 
 PLATFORMS
   ruby
@@ -37,6 +49,8 @@ DEPENDENCIES
   killer_queen_scene_scoring!
   minitest (~> 5.0)
   rake (~> 10.0)
+  vcr (~> 4.0)
+  webmock (~> 3.5.1)
 
 RUBY VERSION
    ruby 2.6.0p0
