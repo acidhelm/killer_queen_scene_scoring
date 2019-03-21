@@ -13,7 +13,7 @@ unless id && api_key
         api_key is your Challonge API key.
 
         If you don't have a tournament ready, you can try one of these, which have
-        already been set up: tvtpeasf clonekqxxv bb3wc
+        already been set up: tvtpeasf clonekqxxvwc bb3wc
 
         For convenience, you can create a .env file in the current directory and
         store your API key in that file.  The file should have this line:
