@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    killer_queen_scene_scoring (0.3.3)
+    killer_queen_scene_scoring (0.3.4)
       dotenv (~> 2.7)
       json (~> 2.2)
       rest-client (~> 2.0)
@@ -15,14 +15,14 @@ GEM
       safe_yaml (~> 1.0.0)
     domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
-    dotenv (2.7.1)
+    dotenv (2.7.2)
     hashdiff (0.3.8)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
     json (2.2.0)
     mime-types (3.2.2)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2018.0812)
+    mime-types-data (3.2019.0331)
     minitest (5.11.3)
     netrc (0.11.0)
     public_suffix (3.0.3)

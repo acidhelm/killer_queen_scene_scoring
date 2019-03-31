@@ -13,7 +13,7 @@ class Bracket < Base
 
         @id = id
         @loaded = false
-        @state == ""
+        @state = ""
     end
 
     def complete?
