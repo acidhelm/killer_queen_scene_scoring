@@ -3,7 +3,7 @@
 require "killer_queen_scene_scoring"
 
 id = ARGV[0]
-api_key = ENV["CHALLONGE_API_KEY"] || ARGV[1]
+api_key = ARGV[1] || ENV["CHALLONGE_API_KEY"]
 
 unless id && api_key
     puts <<~EOS
@@ -24,6 +24,11 @@ unless id && api_key
 end
 
 t = KillerQueenSceneScoring::Tournament.new(id: id, api_key: api_key, logger: true)
-t.load
-t.calculate_points
-puts t.scene_scores.sort
+
+if t.load
+    t.calculate_points
+    puts t.scene_scores.sort
+else
+    puts "The tournament could not be loaded."
+end
+
