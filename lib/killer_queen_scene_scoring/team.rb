@@ -3,7 +3,7 @@
 module KillerQueenSceneScoring
 
 class Team
-    attr_reader :players, :id, :name, :final_rank
+    attr_reader :id, :name, :final_rank
     attr_accessor :points
 
     # `challonge_obj` is the Challonge data for this team.
