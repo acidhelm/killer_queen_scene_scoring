@@ -128,6 +128,15 @@ class Bracket < Base
             raise_error "The config file is missing \"#{key}\"" unless config.key?(key)
         end
 
+        # Check that all teams have exactly 5 players.
+        invalid_teams = config[:teams].each_with_object([]) do |team, obj|
+            obj << team[:name] if team[:players].size != 5
+        end
+
+        if !invalid_teams.empty?
+            raise_error "These teams don't have 5 players: #{invalid_teams.join(', ')}"
+        end
+
         @config = Config.new(config)
     end
 
@@ -228,18 +237,6 @@ class Bracket < Base
 
             log_info "#{team[:name]} (ID #{team_obj.id}) has: " +
                      @players[team_obj.id].map { |p| "#{p.name} (#{p.scene})" }.join(", ")
-        end
-
-        # Bail out if any team doesn't have exactly 5 players.
-        # TODO: Do this in `read_config` instead.
-        invalid_teams = @players.select do |_, team|
-            team.size != 5
-        end.each_key.map do |team_id|
-            @teams.find { |t| t.id == team_id }.name
-        end
-
-        if invalid_teams.any?
-            raise_error "These teams don't have 5 players: #{invalid_teams.join(', ')}"
         end
     end
 
