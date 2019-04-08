@@ -133,7 +133,7 @@ class Bracket < Base
             obj << team[:name] if team[:players].size != 5
         end
 
-        if !invalid_teams.empty?
+        if invalid_teams.any?
             raise_error "These teams don't have 5 players: #{invalid_teams.join(', ')}"
         end
 
