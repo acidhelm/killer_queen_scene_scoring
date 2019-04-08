@@ -1,5 +1,13 @@
 # frozen_string_literal: true
 
+require "simplecov"
+require "coveralls"
+
+Coveralls.wear!
+
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+    [ SimpleCov::Formatter::HTMLFormatter, Coveralls::SimpleCov::Formatter ])
+
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "killer_queen_scene_scoring"
 require "vcr"
