@@ -2,6 +2,7 @@
 
 require "simplecov"
 require "coveralls"
+require "webmock/minitest"
 
 Coveralls.wear!
 

@@ -1,18 +1,20 @@
 require "test_helper"
 
 class KillerQueenSceneScoringTest < Minitest::Test
+    def setup
+        unless (@api_key = ENV["CHALLONGE_API_KEY"])
+            flunk "You must set the CHALLONGE_API_KEY variable in your environment" \
+                    " or the .env file to your API key."
+        end
+    end
+
     def test_the_version_number
         refute_nil KillerQueenSceneScoring::VERSION
     end
 
     def verify_scores(slug, expected_scores)
-        unless (api_key = ENV["CHALLONGE_API_KEY"])
-            flunk "You must set the CHALLONGE_API_KEY variable in your environment" \
-                    " or the .env file to your API key."
-        end
-
         tournament = KillerQueenSceneScoring::Tournament.new(
-                       id: slug, api_key: api_key,
+                       id: slug, api_key: @api_key,
                        logger: Logger.new("log/test.log"))
 
         VCR.use_cassette("verify_scores_#{slug}") do
@@ -62,5 +64,20 @@ class KillerQueenSceneScoringTest < Minitest::Test
                             [ "Eugene", 13.5 ], [ "Canada", 4.5 ] ]
 
         verify_scores("bb3wc", expected_scores)
+    end
+
+    def test_try_to_load_a_nonexistant_bracket
+        slug = "bogustournament"
+        url = "https://api.challonge.com/v1/tournaments/#{slug}.json"
+        resp = { errors: [ "Requested tournament not found" ] }
+
+        stub_request(:get, url).
+            with(query: hash_including(api_key: @api_key)).
+            to_return(status: 404, body: resp.to_json)
+
+        tournament = KillerQueenSceneScoring::Tournament.new(
+                       id: slug, api_key: @api_key)
+
+       refute tournament.load
     end
 end
