@@ -19,6 +19,8 @@ class KillerQueenSceneScoringTest < KillerQueenSceneScoringTestBase
 
         tournament.calculate_points
 
+        assert_equal expected_scores.size, tournament.scene_scores.size
+
         tournament.scene_scores.sort.each_with_index do |score, i|
             assert_equal expected_scores[i][0], score.name
             assert_equal expected_scores[i][1], score.score
