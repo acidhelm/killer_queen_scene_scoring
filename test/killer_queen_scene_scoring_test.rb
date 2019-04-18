@@ -1,15 +1,11 @@
 require "test_helper"
 
-class KillerQueenSceneScoringTest < Minitest::Test
+class KillerQueenSceneScoringTest < KillerQueenSceneScoringTestBase
     def setup
         unless (@api_key = ENV["CHALLONGE_API_KEY"])
             flunk "You must set the CHALLONGE_API_KEY variable in your environment" \
                     " or the .env file to your API key."
         end
-    end
-
-    def test_the_version_number
-        refute_nil KillerQueenSceneScoring::VERSION
     end
 
     def verify_scores(slug, expected_scores)
@@ -29,7 +25,11 @@ class KillerQueenSceneScoringTest < Minitest::Test
         end
     end
 
-    def test_a_4_team_tournament
+    test "The version number must exist" do
+        refute_nil KillerQueenSceneScoring::VERSION
+    end
+
+    test "Check a 4-team tournament" do
         expected_scores = [ [ "San Francisco", 12.0 ], [ "Charlotte", 6.0 ],
                             [ "Chicago", 6.0 ], [ "Minneapolis", 6.0 ],
                             [ "New York", 5.0 ], [ "Kansas City", 4.0 ],
@@ -38,7 +38,7 @@ class KillerQueenSceneScoringTest < Minitest::Test
         verify_scores("tvtpeasf", expected_scores)
     end
 
-    def test_the_kq25_tournament
+    test "Check the KQ 25 tournament" do
         expected_scores = [ [ "New York", 391.5 ], [ "Chicago", 370.5 ],
                             [ "Charlotte", 316.5 ], [ "Minneapolis", 292.0 ],
                             [ "Portland", 275.0 ], [ "Columbus", 219.5 ],
@@ -50,7 +50,7 @@ class KillerQueenSceneScoringTest < Minitest::Test
         verify_scores("clonekqxxvwc", expected_scores)
     end
 
-    def test_the_bb3_tournament
+    test "Check the BB3 tournament" do
         expected_scores = [ [ "New York", 951.0 ], [ "Chicago", 902.5 ],
                             [ "Charlotte", 803.5 ], [ "Portland", 782.5 ],
                             [ "Minneapolis", 735.5 ], [ "San Francisco", 654.5 ],
@@ -66,7 +66,7 @@ class KillerQueenSceneScoringTest < Minitest::Test
         verify_scores("bb3wc", expected_scores)
     end
 
-    def test_try_to_load_a_nonexistant_bracket
+    test "Try to load a non-existant bracket" do
         slug = "bogustournament"
         url = "https://api.challonge.com/v1/tournaments/#{slug}.json"
         resp = { errors: [ "Requested tournament not found" ] }

@@ -23,3 +23,20 @@ VCR.configure do |config|
         re_record_interval: 5 * 60 * 60 * 24 }  # 5 days
     config.hook_into :webmock
 end
+
+class KillerQueenSceneScoringTestBase < MiniTest::Test
+    def self.test(name, &block)
+        test_name = "test_#{name.gsub(/\s+/, '_')}".to_sym
+        defined = method_defined?(test_name)
+
+        raise "#{test_name} is already defined in #{self}" if defined
+
+        if block_given?
+            define_method(test_name, &block)
+        else
+            define_method(test_name) do
+                flunk "No implementation was provided for #{name}"
+            end
+        end
+    end
+end
