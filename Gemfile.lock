@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    killer_queen_scene_scoring (0.4.3)
+    killer_queen_scene_scoring (1.0.0)
       dotenv (~> 2.7)
       json (~> 2.2)
       rest-client (~> 2.0)
@@ -23,7 +23,7 @@ GEM
     domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.7.2)
-    hashdiff (0.3.8)
+    hashdiff (0.3.9)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
     json (2.2.0)
@@ -50,7 +50,7 @@ GEM
     tins (1.20.2)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.5)
+    unf_ext (0.0.7.6)
     vcr (4.0.0)
     webmock (3.5.1)
       addressable (>= 2.3.6)
