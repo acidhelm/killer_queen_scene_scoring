@@ -33,7 +33,7 @@ GEM
     minitest (5.11.3)
     netrc (0.11.0)
     public_suffix (3.0.3)
-    rake (10.5.0)
+    rake (13.0.1)
     rest-client (2.0.2)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
@@ -65,7 +65,7 @@ DEPENDENCIES
   coveralls (~> 0.8)
   killer_queen_scene_scoring!
   minitest (~> 5.0)
-  rake (~> 10.0)
+  rake (~> 13.0)
   simplecov (~> 0.16)
   vcr (~> 4.0)
   webmock (~> 3.5.1)
